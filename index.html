@@ -1145,6 +1145,13 @@
                     folketrygdNetWithdrawal = Math.round(adjustedPension * (1 - params.folketrygdTaxRate / 100));
                 }
 
+                let deflatedMonthlyPension = 0;
+                if (showPension) {
+                    const totalAnnualPension = pensionNetWithdrawal + folketrygdNetWithdrawal;
+                    const monthlyPension = totalAnnualPension / 12;
+                    deflatedMonthlyPension = Math.round(monthlyPension / inflationFactor);
+                }
+
                 netWithdrawal = Math.max(0, netWithdrawal - pensionNetWithdrawal - folketrygdNetWithdrawal);
                 const { grossWithdrawal, withdrawalTax, utilizedAllowance } = calculateGrossWithdrawal(netWithdrawal, taxFreeDeposit, params.stockWithdrawalTax, params.personalAllowance);
                 const withdrawalFromTaxFree = Math.min(taxFreeDeposit, netWithdrawal);
@@ -1208,6 +1215,7 @@
                         <td class="px-6 py-4 text-base pension-column ${showPension ? 'show' : ''}">${formatNumber(pensionNetWithdrawal)}</td>
                         <td class="px-6 py-4 text-base pension-column ${showPension ? 'show' : ''}">${formatNumber(pensionValue)}</td>
                         <td class="px-6 py-4 text-base pension-column ${showPension ? 'show' : ''}">${formatNumber(folketrygdNetWithdrawal)}</td>
+                        <td class="px-6 py-4 text-base pension-column ${showPension ? 'show' : ''}">${formatNumber(deflatedMonthlyPension)}</td>
                     </tr>
                 `);
 
@@ -1235,6 +1243,7 @@
                 <th class="px-6 py-3 text-base font-medium pension-column ${showPension ? 'show' : ''}">Tjenestepensjon (netto, kr)</th>
                 <th class="px-6 py-3 text-base font-medium pension-column ${showPension ? 'show' : ''}">Tjenestepensjon beholdning (kr)</th>
                 <th class="px-6 py-3 text-base font-medium pension-column ${showPension ? 'show' : ''}">Folketrygd pensjon (netto, kr)</th>
+                <th class="px-6 py-3 text-base font-medium pension-column ${showPension ? 'show' : ''}">Månedlig pensjon (netto, dagens verdi, kr)</th>
             </tr>`;
             document.getElementById('resultsTable').innerHTML = tableRows.join('');
             document.getElementById('durationMessage').innerText = duration > 0 ? `Fondsverdien vil vare i ${duration} år med dette uttaket!` : `Fondsverdien vil vare i mer enn ${years} år med dette uttaket!`;
