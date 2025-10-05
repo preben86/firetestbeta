@@ -986,6 +986,7 @@
             let netWithdrawal = initialMonthlyNetWithdrawal * 12;
             let previousNetWithdrawal = 0, previousWithdrawalTax = 0, previousWealthTax = 0, previousWithdrawalFromTaxFree = 0;
             let previousGrossWithdrawal = 0;
+            let previousSurplus = 0;
 
             for (let year = 0; year <= maxYears; year++) {
                 const inflationFactor = Math.pow(1 + params.inflationRate, year);
@@ -1011,7 +1012,11 @@
                     folketrygdNetWithdrawal = Math.round(adjustedPension * (1 - params.folketrygdTaxRate / 100));
                 }
 
-                currentNetWithdrawal = Math.max(0, currentNetWithdrawal - pensionNetWithdrawal - folketrygdNetWithdrawal);
+                const required = Math.round(netWithdrawal * inflationFactor);
+                const pensions = pensionNetWithdrawal + folketrygdNetWithdrawal;
+                currentNetWithdrawal = Math.max(0, required - pensions);
+                const surplus = Math.max(0, pensions - required);
+
                 const { grossWithdrawal, withdrawalTax, utilizedAllowance } = calculateGrossWithdrawal(currentNetWithdrawal, taxFreeDeposit, params.stockWithdrawalTax, params.personalAllowance);
                 const withdrawalFromTaxFree = Math.min(taxFreeDeposit, currentNetWithdrawal);
                 const uttakNy = previousGrossWithdrawal;
@@ -1029,6 +1034,9 @@
                         taxFreeDeposit = Math.max(0, previousDisplayedTaxFreeDeposit - previousWithdrawalFromTaxFree);
                         displayedTaxFreeDeposit = taxFreeDeposit;
                     }
+                    portfolioValue += previousSurplus;
+                    taxFreeDeposit += previousSurplus;
+                    displayedTaxFreeDeposit = taxFreeDeposit;
                     let shieldingIncrease = previousDisplayedTaxFreeDeposit > 10000 ? Math.round(previousDisplayedTaxFreeDeposit * params.shieldingRate) : 0;
                     taxFreeDeposit = Math.max(0, taxFreeDeposit + shieldingIncrease);
                     displayedTaxFreeDeposit = taxFreeDeposit;
@@ -1048,6 +1056,7 @@
                 previousWealthTax = wealthTax;
                 previousWithdrawalFromTaxFree = withdrawalFromTaxFree;
                 previousGrossWithdrawal = grossWithdrawal;
+                previousSurplus = surplus;
             }
             return maxYears + 1;
         }
@@ -1118,6 +1127,7 @@
             let initialNetWithdrawal = monthlyNetWithdrawal * 12;
             let previousNetWithdrawal = 0, previousWithdrawalTax = 0, previousWealthTax = 0, previousWithdrawalFromTaxFree = 0;
             let previousGrossWithdrawal = 0;
+            let previousSurplus = 0;
             let duration = 0;
             const tableRows = [];
 
@@ -1152,7 +1162,11 @@
                     deflatedMonthlyPension = Math.round(monthlyPension / inflationFactor);
                 }
 
-                netWithdrawal = Math.max(0, netWithdrawal - pensionNetWithdrawal - folketrygdNetWithdrawal);
+                const required = Math.round(initialNetWithdrawal * inflationFactor);
+                const pensions = pensionNetWithdrawal + folketrygdNetWithdrawal;
+                netWithdrawal = Math.max(0, required - pensions);
+                const surplus = Math.max(0, pensions - required);
+
                 const { grossWithdrawal, withdrawalTax, utilizedAllowance } = calculateGrossWithdrawal(netWithdrawal, taxFreeDeposit, params.stockWithdrawalTax, params.personalAllowance);
                 const withdrawalFromTaxFree = Math.min(taxFreeDeposit, netWithdrawal);
                 const uttakNy = previousGrossWithdrawal;
@@ -1170,6 +1184,9 @@
                         taxFreeDeposit = Math.max(0, previousDisplayedTaxFreeDeposit - previousWithdrawalFromTaxFree);
                         displayedTaxFreeDeposit = taxFreeDeposit;
                     }
+                    portfolioValue += previousSurplus;
+                    taxFreeDeposit += previousSurplus;
+                    displayedTaxFreeDeposit = taxFreeDeposit;
                     let shieldingIncrease = previousDisplayedTaxFreeDeposit > 10000 ? Math.round(previousDisplayedTaxFreeDeposit * params.shieldingRate) : 0;
                     taxFreeDeposit = Math.max(0, taxFreeDeposit + shieldingIncrease);
                     displayedTaxFreeDeposit = taxFreeDeposit;
@@ -1225,6 +1242,7 @@
                 previousWealthTax = wealthTax;
                 previousWithdrawalFromTaxFree = withdrawalFromTaxFree;
                 previousGrossWithdrawal = grossWithdrawal;
+                previousSurplus = surplus;
             }
 
             document.getElementById('resultsTableHead').innerHTML = `<tr>
